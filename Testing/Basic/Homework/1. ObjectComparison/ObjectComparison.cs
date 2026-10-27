@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using FluentAssertions;
+using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
 namespace HomeExercise.Tasks.ObjectComparison;
@@ -10,20 +11,15 @@ public class ObjectComparison
     public void CheckCurrentTsar()
     {
         var actualTsar = TsarRegistry.GetCurrentTsar();
-
         var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
             new Person("Vasili III of Russia", 28, 170, 60, null));
 
-        // Перепишите код на использование Fluent Assertions.
-        ClassicAssert.AreEqual(actualTsar.Name, expectedTsar.Name);
-        ClassicAssert.AreEqual(actualTsar.Age, expectedTsar.Age);
-        ClassicAssert.AreEqual(actualTsar.Height, expectedTsar.Height);
-        ClassicAssert.AreEqual(actualTsar.Weight, expectedTsar.Weight);
-
-        ClassicAssert.AreEqual(expectedTsar.Parent!.Name, actualTsar.Parent!.Name);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Age, actualTsar.Parent.Age);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Height, actualTsar.Parent.Height);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Parent, actualTsar.Parent.Parent);
+        // В документации FluentAssertions нашёл метод BeEquivalentTo, который умеет сравнивать графы объектов.
+        // https://fluentassertions.com/objectgraphs/
+        actualTsar.Should().BeEquivalentTo(expectedTsar);
+        // Он рекурсивно сравнивает все поля объектов, включая вложенные объекты.
+        // Поэтому, если добавить ещё поля или изменить названия старых полей, то тест всё равно будет работать,
+        // если значения полей совпадают.
     }
 
     [Test]
@@ -36,6 +32,10 @@ public class ObjectComparison
 
         // Какие недостатки у такого подхода? 
         ClassicAssert.True(AreEqual(actualTsar, expectedTsar));
+
+        // Ну, как минимум, если добавить ещё поля, то тест сломается.
+        // Нужно будет вручную добавлять новые if проверки в метод AreEqual
+        // Но, если лишь менять названия старых полей, то ошибок не будет, если IDE переименует их во всех местах, включая метод AreEqual.
     }
 
     private bool AreEqual(Person? actual, Person? expected)
